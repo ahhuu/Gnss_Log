@@ -55,9 +55,4 @@
             android:name="com.google.android.apps.location.gps.gnsslogger.DetectedActivitiesIntentReceiver"
             android:exported="false" />
     </application>
-
-
-
-
-
 </manifest>
