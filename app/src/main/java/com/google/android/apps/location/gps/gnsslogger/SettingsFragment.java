@@ -57,6 +57,11 @@ public class SettingsFragment extends Fragment {
   private MeasurementProvider mGpsContainer;
   private HelpDialog helpDialog;
 
+  private FileLogger mFileLogger;
+  public void setFileLogger(FileLogger fileLogger) {
+    this.mFileLogger = fileLogger;
+  }
+
   /**
    * The {@link RealTimePositionVelocityCalculator} set for receiving the ground truth mode switch
    */
@@ -225,13 +230,39 @@ public class SettingsFragment extends Fragment {
           }
         });
 
+    final Switch registerRinex = view.findViewById(R.id.register_rinex);
+    final TextView registerRinexLabel = view.findViewById(R.id.register_rinex_label);
+    // set the switch to OFF
+    registerRinex.setChecked(false);
+    registerRinexLabel.setText("Switch is OFF");
+    registerRinex.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+      @Override
+      public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        if (isChecked) {
+          mFileLogger.startRinexLogging();
+          registerRinexLabel.setText("Switch is ON");
+          LoggerFragment.UIFragmentComponent uiComponent = ((MainActivity) getActivity()).getUIFragmentComponent();
+          if (uiComponent != null) {
+            uiComponent.logTextFragment("RINEX", "RINEX logging started", android.graphics.Color.GREEN);
+          }
+        } else {
+          mFileLogger.stopRinexLogging();
+          registerRinexLabel.setText("Switch is OFF");
+          LoggerFragment.UIFragmentComponent uiComponent = ((MainActivity) getActivity()).getUIFragmentComponent();
+          if (uiComponent != null) {
+            uiComponent.logTextFragment("RINEX", "RINEX logging stopped", android.graphics.Color.RED);
+          }
+        }
+      }
+    });
+
     final Switch residualPlotSwitch = (Switch) view.findViewById(R.id.residual_plot_enabled);
     final TextView turnOnResidual = (TextView) view.findViewById(R.id.turn_on_residual_plot);
     turnOnResidual.setText("Switch is OFF");
     residualPlotSwitch.setOnCheckedChangeListener(
         new OnCheckedChangeListener() {
           @Override
-          public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+          public void onCheckedChanged(CompoundButton buttonView, boolean  isChecked) {
             if (isChecked) {
 
               LayoutInflater inflater =

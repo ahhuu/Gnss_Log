@@ -158,6 +158,28 @@
         android:text="@string/residual_plot" />
   </LinearLayout>
 
+  <!-- 新增 RINEX 开关 -->
+  <LinearLayout
+      android:orientation="horizontal"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content">
+    <TextView
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:layout_marginTop="15dp"
+        android:id="@+id/register_rinex_label" />
+    <Switch
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:id="@+id/register_rinex"
+        android:singleLine="true"
+        android:layout_marginTop="15dp"
+        android:text="@string/rinex_label" />
+  </LinearLayout>
+
   <RelativeLayout
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
@@ -211,6 +233,4 @@
           android:textStyle="italic|bold" />
     </LinearLayout>
   </RelativeLayout>
-
-
 </LinearLayout>

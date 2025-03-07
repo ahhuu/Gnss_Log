@@ -112,6 +112,14 @@ public class LoggerFragment extends Fragment implements TimerListener {
         mFileLogger = value;
     }
 
+    // 在 LoggerFragment 类中添加以下代码
+
+    public UIFragmentComponent getUIFragmentComponent() {
+        return mUiComponent;
+    }
+
+
+
     @Override
     public void onResume() {
         super.onResume();

@@ -16,7 +16,6 @@
 
 package com.google.android.apps.location.gps.gnsslogger;
 
-
 import android.Manifest;
 import android.app.Activity;
 import android.app.PendingIntent;
@@ -39,7 +38,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.viewpager.widget.ViewPager;
@@ -56,10 +54,10 @@ import java.util.Locale;
 
 /** The activity for the application. */
 public class MainActivity extends AppCompatActivity
-    implements OnConnectionFailedListener, ConnectionCallbacks, GroundTruthModeSwitcher {
+        implements OnConnectionFailedListener, ConnectionCallbacks, GroundTruthModeSwitcher {
   private static final int LOCATION_REQUEST_ID = 1;
   private static final String[] REQUIRED_PERMISSIONS = {
-    Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.WRITE_EXTERNAL_STORAGE
+          Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.WRITE_EXTERNAL_STORAGE
   };
   private static final int NUMBER_OF_FRAGMENTS = 6;
   private static final int FRAGMENT_INDEX_SETTING = 0;
@@ -77,44 +75,57 @@ public class MainActivity extends AppCompatActivity
   private AgnssUiLogger mAgnssUiLogger;
   private Fragment[] mFragments;
   private GoogleApiClient mGoogleApiClient;
+  private LoggerFragment mLoggerFragment;
+  private SettingsFragment mSettingsFragment;
+
+  private LoggerFragment.UIFragmentComponent mUIFragmentComponent;
+
+  public LoggerFragment.UIFragmentComponent getUIFragmentComponent() {
+    return mUIFragmentComponent;
+  }
+
   private boolean mAutoSwitchGroundTruthMode;
   //广播接收器，用于接收活动检测结果的广播
   private final ActivityDetectionBroadcastReceiver mBroadcastReceiver =
-      new ActivityDetectionBroadcastReceiver();
+          new ActivityDetectionBroadcastReceiver();
   //服务连接对象，用于绑定和解绑服务
   private ServiceConnection mConnection =
-      new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName className, IBinder serviceBinder) {
-          // Empty
-        }
+          new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName className, IBinder serviceBinder) {
+              // Empty
+            }
 
-        @Override
-        public void onServiceDisconnected(ComponentName className) {
-          // Empty
-        }
-      };
+            @Override
+            public void onServiceDisconnected(ComponentName className) {
+              // Empty
+            }
+          };
+
   // 在活动启动时，绑定 TimerService 服务，确保应用运行时服务可用
   @Override
   protected void onStart() {
     super.onStart();
     bindService(new Intent(this, TimerService.class), mConnection, Context.BIND_AUTO_CREATE);
   }
+
   //在活动恢复时，注册广播接收器 mBroadcastReceiver，用于接收活动检测结果的广播
   @Override
   protected void onResume() {
     super.onResume();
     LocalBroadcastManager.getInstance(this)
-        .registerReceiver(
-            mBroadcastReceiver,
-            new IntentFilter(DetectedActivitiesIntentReceiver.AR_RESULT_BROADCAST_ACTION));
+            .registerReceiver(
+                    mBroadcastReceiver,
+                    new IntentFilter(DetectedActivitiesIntentReceiver.AR_RESULT_BROADCAST_ACTION));
   }
+
   //在活动暂停时，取消注册广播接收器 mBroadcastReceiver
   @Override
   protected void onPause() {
     LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
     super.onPause();
   }
+
   //在活动停止时，解绑之前绑定的服务
   @Override
   protected void onStop() {
@@ -152,13 +163,13 @@ public class MainActivity extends AppCompatActivity
 
   private synchronized void buildGoogleApiClient() {
     mGoogleApiClient =
-        new GoogleApiClient.Builder(this)
-            .enableAutoManage(this, this)
-            .addConnectionCallbacks(this)
-            .addOnConnectionFailedListener(this)
-            .addApi(ActivityRecognition.API)
-            .addApi(LocationServices.API)
-            .build();
+            new GoogleApiClient.Builder(this)
+                    .enableAutoManage(this, this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(ActivityRecognition.API)
+                    .addApi(LocationServices.API)
+                    .build();
   }
 
   @Override
@@ -175,7 +186,7 @@ public class MainActivity extends AppCompatActivity
     }
     try {
       ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(
-          mGoogleApiClient, 0, createActivityDetectionPendingIntent());
+              mGoogleApiClient, 0, createActivityDetectionPendingIntent());
     } catch (SecurityException e) {
       // TODO(adaext)
       //    ActivityCompat#requestPermissions
@@ -190,7 +201,7 @@ public class MainActivity extends AppCompatActivity
   }
 
   /**
-   * A {@link FragmentPagerAdapter} that returns a fragment corresponding to one of the
+   * A {@link FragmentStatePagerAdapter} that returns a fragment corresponding to one of the
    * sections/tabs/pages.
    */
   public class ViewPagerAdapter extends FragmentStatePagerAdapter {
@@ -201,22 +212,15 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public androidx.fragment.app.Fragment getItem(int position) {
-      switch (position) {
-        case FRAGMENT_INDEX_SETTING:
-          return mFragments[FRAGMENT_INDEX_SETTING];
-        case FRAGMENT_INDEX_LOGGER:
-          return mFragments[FRAGMENT_INDEX_LOGGER];
-        case FRAGMENT_INDEX_RESULT:
-          return mFragments[FRAGMENT_INDEX_RESULT];
-        case FRAGMENT_INDEX_MAP:
-          return mFragments[FRAGMENT_INDEX_MAP];
-        case FRAGMENT_INDEX_AGNSS:
-          return mFragments[FRAGMENT_INDEX_AGNSS];
-        case FRAGMENT_INDEX_PLOT:
-          return mFragments[FRAGMENT_INDEX_PLOT];
-        default:
-          throw new IllegalArgumentException("Invalid section: " + position);
+      if (position < 0 || position >= mFragments.length) {
+        Log.e(TAG, "Invalid section: " + position);
+        throw new IllegalArgumentException("Invalid section: " + position);
       }
+      Fragment fragment = mFragments[position];
+      if (fragment == null) {
+        Log.e(TAG, "Fragment at position " + position + " is null");
+      }
+      return fragment;
     }
 
     @Override
@@ -259,11 +263,9 @@ public class MainActivity extends AppCompatActivity
       } else {
         // 权限被拒绝，向用户解释为什么需要这些权限
         if (ActivityCompat.shouldShowRequestPermissionRationale(this, REQUIRED_PERMISSIONS[0])) {
-          // 显示解释对话框
-          // 这里可以使用 AlertDialog 等方式向用户解释为什么需要这些权限
           Log.i(TAG, "Permissions are required to use the app properly.");
         } else {
-          // 用户选择了不再询问，引导用户到应用设置页面手动开启权限
+          // 用户选择不再询问，引导用户到应用设置页面手动开启权限
           Log.i(TAG, "User denied permissions and selected 'Don't ask again'.");
         }
       }
@@ -275,28 +277,31 @@ public class MainActivity extends AppCompatActivity
     mRealTimePositionVelocityCalculator = new RealTimePositionVelocityCalculator();
     mRealTimePositionVelocityCalculator.setMainActivity(this);
     mRealTimePositionVelocityCalculator.setResidualPlotMode(
-        RealTimePositionVelocityCalculator.RESIDUAL_MODE_DISABLED, null /* fixedGroundTruth */);
+            RealTimePositionVelocityCalculator.RESIDUAL_MODE_DISABLED, null /* fixedGroundTruth */);
 
     mFileLogger = new FileLogger(getApplicationContext());
     mAgnssUiLogger = new AgnssUiLogger();
     mMeasurementProvider =
-        new MeasurementProvider(
-            getApplicationContext(),
-            mGoogleApiClient,
-            mUiLogger,
-            mFileLogger,
-            mRealTimePositionVelocityCalculator,
-            mAgnssUiLogger);
+            new MeasurementProvider(
+                    getApplicationContext(),
+                    mGoogleApiClient,
+                    mUiLogger,
+                    mFileLogger,
+                    mRealTimePositionVelocityCalculator,
+                    mAgnssUiLogger);
     mFragments = new Fragment[NUMBER_OF_FRAGMENTS];
+
     SettingsFragment settingsFragment = new SettingsFragment();
     settingsFragment.setGpsContainer(mMeasurementProvider);
     settingsFragment.setRealTimePositionVelocityCalculator(mRealTimePositionVelocityCalculator);
     settingsFragment.setAutoModeSwitcher(this);
+    settingsFragment.setFileLogger(mFileLogger); // 设置 FileLogger 到 SettingsFragment
     mFragments[FRAGMENT_INDEX_SETTING] = settingsFragment;
 
     LoggerFragment loggerFragment = new LoggerFragment();
     loggerFragment.setUILogger(mUiLogger);
     loggerFragment.setFileLogger(mFileLogger);
+    mUIFragmentComponent = loggerFragment.getUIFragmentComponent(); // 获取 UIFragmentComponent 实例
     mFragments[FRAGMENT_INDEX_LOGGER] = loggerFragment;
 
     ResultFragment resultFragment = new ResultFragment();
@@ -317,12 +322,12 @@ public class MainActivity extends AppCompatActivity
     mRealTimePositionVelocityCalculator.setPlotFragment(plotFragment);
 
     // The viewpager that will host the section contents.
-    ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
+    ViewPager viewPager = findViewById(R.id.pager);
     viewPager.setOffscreenPageLimit(5);
     ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
     viewPager.setAdapter(adapter);
 
-    TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
+    TabLayout tabLayout = findViewById(R.id.tab_layout);
     tabLayout.setTabsFromPagerAdapter(adapter);
 
     // Set a listener via setOnTabSelectedListener(OnTabSelectedListener) to be notified when any
@@ -333,6 +338,7 @@ public class MainActivity extends AppCompatActivity
     // this layout
     viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
   }
+
   // 检查是否拥有所有必需的权限
   private boolean hasPermissions(Activity activity) {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
@@ -346,6 +352,7 @@ public class MainActivity extends AppCompatActivity
     }
     return true;
   }
+
   // 请求权限并设置 Fragment
   private void requestPermissionAndSetupFragments(final Activity activity) {
     if (hasPermissions(activity)) {
@@ -388,12 +395,12 @@ public class MainActivity extends AppCompatActivity
     if (result != null) {
       int detectedActivityType = result.getMostProbableActivity().getType();
       if (detectedActivityType == DetectedActivity.STILL
-          || detectedActivityType == DetectedActivity.TILTING) {
+              || detectedActivityType == DetectedActivity.TILTING) {
         mRealTimePositionVelocityCalculator.setResidualPlotMode(
-            RealTimePositionVelocityCalculator.RESIDUAL_MODE_STILL, null);
+                RealTimePositionVelocityCalculator.RESIDUAL_MODE_STILL, null);
       } else {
         mRealTimePositionVelocityCalculator.setResidualPlotMode(
-            RealTimePositionVelocityCalculator.RESIDUAL_MODE_MOVING, null);
+                RealTimePositionVelocityCalculator.RESIDUAL_MODE_MOVING, null);
       }
     }
   }

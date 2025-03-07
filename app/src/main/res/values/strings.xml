@@ -19,6 +19,7 @@
     <string name="nmea_label">Nmea</string>
     <string name="auto_scroll">Auto Scroll</string>
     <string name="residual_plot">Residual Plot</string>
+    <string name="rinex_label">RINEX</string>
 
     <string name="help">HELP</string>
     <string name="exit">Exit</string>
