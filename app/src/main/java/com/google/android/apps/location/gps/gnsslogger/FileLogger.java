@@ -83,7 +83,7 @@ public class FileLogger implements MeasurementListener {
       File baseDirectory;
       String state = Environment.getExternalStorageState();
       if (Environment.MEDIA_MOUNTED.equals(state)) {
-        // 使用 getExternalFilesDir 来适配 Android 10 及以上版本
+        // getExternalFilesDir适配 Android 10 及以上版本
         baseDirectory = new File(mContext.getExternalFilesDir(null), FILE_PREFIX);
         if (!baseDirectory.exists() && !baseDirectory.mkdirs()) {
           logError("Failed to create directory: " + baseDirectory.getAbsolutePath());
