@@ -240,19 +240,29 @@ public class FileLogger implements MeasurementListener {
   // 写入 RINEX 头文件信息
   private void writeRinexHeader(BufferedWriter writer) throws IOException {
     writer.write("     3.04           OBSERVATION DATA    M  RINEX VERSION / TYPE\n");
-    writer.write("GNSS Logger                     PROGRAM\n");
-    writer.write("Google                          AGENCY\n");
-    writer.write("Sample Station Name             MARKER NAME\n");
-    writer.write("Sample Marker Number            MARKER NUMBER\n");
+    writer.write("Gnss Logger                     PROGRAM\n");
+    writer.write("swjtu                          AGENCY\n");
+    writer.write("Station Name             MARKER NAME\n");
+    writer.write("Marker Number            MARKER NUMBER\n");
     writer.write("NONE                            MARKER TYPE\n");
-    writer.write("Sample Receiver Type            REC # / TYPE / VERS\n");
+    // 获取手机制造商和型号信息
+    String manufacturer = Build.MANUFACTURER;
+    String model = Build.MODEL;
+    // 写入接收机编号、类型和版本信息
+    writer.write(String.format(Locale.US, "%-20s %s REC # / TYPE / VERS\n", manufacturer + " " + model, " "));
     writer.write("Sample Antenna Type             ANT # / TYPE\n");
     writer.write("    0.00000000       0.00000000       0.00000000                  APPROX POSITION XYZ\n");
     writer.write("    0.00000000       0.00000000       0.00000000                  ANTENNA: DELTA H/E/N\n");
     writer.write("                                                            WAVELENGTH FACT L1/2\n");
     writer.write("G    C1C L1C D1C S1C                                                         SYS / # / OBS TYPES\n");
-    writer.write("                                                            TIME OF FIRST OBS\n");
-    writer.write("                                                            TIME OF LAST OBS\n");
+    // 获取当前时间
+    Date currentDate = new Date();
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy  MM  dd  HH  mm  ss.SSSSSSS", Locale.US);
+    String currentDateStr = dateFormat.format(currentDate);
+    // 首次观测时间
+    writer.write("  " + currentDateStr + "     GPS         TIME OF FIRST OBS\n");
+    // 末次观测时间，这里暂时用首次观测时间代替，可按需修改
+    writer.write("  " + currentDateStr + "     GPS         TIME OF LAST OBS\n");
     writer.write("     0                            LEAP SECONDS\n");
     writer.write("                                                            END OF HEADER\n");
   }
@@ -292,7 +302,7 @@ public class FileLogger implements MeasurementListener {
       return;
     }
 
-    // 附加 RINEX 数据文件
+/*    // 附加 RINEX 数据文件
     if (mRinexFile != null) {
       try {
         Uri rinexFileURI = FileProvider.getUriForFile(mContext, BuildConfig.APPLICATION_ID + ".provider", mRinexFile);
@@ -301,7 +311,7 @@ public class FileLogger implements MeasurementListener {
         logException("Error getting file URI for RINEX log", e);
         return;
       }
-    }
+    }*/
 
     emailIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, new ArrayList<>(uris));
 
